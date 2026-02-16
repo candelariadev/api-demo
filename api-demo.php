@@ -15,9 +15,7 @@ define('API_DEMO_PRODUCTS_TRANSIENT', 'api_demo_products_v1');
 define('API_DEMO_PRODUCTS_TTL', 15 * MINUTE_IN_SECONDS);
 define('API_DEMO_HTML_TTL', 5 * MINUTE_IN_SECONDS);
 
-/**
- * Detectar si la vista actual contiene el shortcode
- */
+
 function api_demo_current_view_has_shortcode() {
   static $has_shortcode = null;
 
@@ -36,9 +34,7 @@ function api_demo_current_view_has_shortcode() {
   return $has_shortcode;
 }
 
-/**
- * Version para invalidar cache renderizado
- */
+
 function api_demo_get_cache_version() {
   return (int) get_option('api_demo_cache_version', 1);
 }
@@ -47,9 +43,6 @@ function api_demo_bump_cache_version() {
   update_option('api_demo_cache_version', api_demo_get_cache_version() + 1, false);
 }
 
-/**
- * Consumir API con cache
- */
 function api_demo_get_products($force_refresh = false) {
   if (!$force_refresh) {
     $cached_products = get_transient(API_DEMO_PRODUCTS_TRANSIENT);
@@ -82,9 +75,7 @@ function api_demo_get_products($force_refresh = false) {
   return $products;
 }
 
-/**
- * Obtener mapa sku => product_id en una sola query
- */
+
 function api_demo_get_wc_ids_by_skus($skus) {
   global $wpdb;
 
@@ -112,9 +103,7 @@ function api_demo_get_wc_ids_by_skus($skus) {
   return $map;
 }
 
-/**
- * Buscar attachment por URL fuente para evitar duplicados
- */
+
 function api_demo_get_image_id_by_source_url($image_url) {
   $query = new WP_Query([
     'post_type' => 'attachment',
@@ -132,9 +121,7 @@ function api_demo_get_image_id_by_source_url($image_url) {
   return 0;
 }
 
-/**
- * Adjuntar imagen destacada desde URL externa
- */
+
 function api_demo_attach_product_image($product_id, $image_url) {
   $product_id = absint($product_id);
   $image_url = esc_url_raw($image_url);
@@ -187,9 +174,7 @@ function api_demo_attach_product_image($product_id, $image_url) {
   return $image_id;
 }
 
-/**
- * Render de imagen con fallback a URL de API
- */
+
 function api_demo_get_product_image_html($wc_product, $api_product, $is_lcp_image = false) {
   if (!$wc_product) {
     return '';
@@ -233,9 +218,7 @@ function api_demo_get_product_image_html($wc_product, $api_product, $is_lcp_imag
   return wc_placeholder_img('woocommerce_thumbnail');
 }
 
-/**
- * Registrar estilos
- */
+
 function api_demo_register_styles() {
   wp_register_style(
     'api-demo-products',
@@ -246,9 +229,7 @@ function api_demo_register_styles() {
 }
 add_action('wp_enqueue_scripts', 'api_demo_register_styles');
 
-/**
- * Enqueue condicional en head para evitar estilos tardíos
- */
+
 function api_demo_maybe_enqueue_assets() {
   if (!api_demo_current_view_has_shortcode()) {
     return;
@@ -258,9 +239,7 @@ function api_demo_maybe_enqueue_assets() {
 }
 add_action('wp_enqueue_scripts', 'api_demo_maybe_enqueue_assets', 20);
 
-/**
- * Reducir JS bloqueante de WooCommerce en páginas del shortcode
- */
+
 function api_demo_reduce_woocommerce_frontend_js() {
   if (!api_demo_current_view_has_shortcode()) {
     return;
@@ -283,9 +262,7 @@ function api_demo_reduce_woocommerce_frontend_js() {
 }
 add_action('wp_enqueue_scripts', 'api_demo_reduce_woocommerce_frontend_js', 100);
 
-/**
- * Reducir CSS no usado de WooCommerce en páginas de shortcode
- */
+
 function api_demo_reduce_woocommerce_frontend_css() {
   if (!api_demo_current_view_has_shortcode()) {
     return;
@@ -311,9 +288,6 @@ function api_demo_reduce_woocommerce_frontend_css() {
 }
 add_action('wp_enqueue_scripts', 'api_demo_reduce_woocommerce_frontend_css', 101);
 
-/**
- * Reducir JS no esencial en frontend
- */
 function api_demo_disable_jquery_migrate($scripts) {
   if (is_admin()) {
     return;
@@ -325,18 +299,14 @@ function api_demo_disable_jquery_migrate($scripts) {
 }
 add_action('wp_default_scripts', 'api_demo_disable_jquery_migrate');
 
-/**
- * Desactivar emojis (reduce una request y JS innecesario)
- */
+
 function api_demo_disable_emojis() {
   remove_action('wp_head', 'print_emoji_detection_script', 7);
   remove_action('wp_print_styles', 'print_emoji_styles');
 }
 add_action('init', 'api_demo_disable_emojis');
 
-/**
- * Preconnect para Google Fonts en páginas del shortcode
- */
+
 function api_demo_google_fonts_preconnect() {
   if (!api_demo_current_view_has_shortcode()) {
     return;
@@ -347,9 +317,7 @@ function api_demo_google_fonts_preconnect() {
 }
 add_action('wp_head', 'api_demo_google_fonts_preconnect', 1);
 
-/**
- * Carga no bloqueante para estilos de Google Fonts
- */
+
 function api_demo_async_google_fonts_styles($html, $handle, $href, $media) {
   if (!api_demo_current_view_has_shortcode()) {
     return $html;
@@ -364,9 +332,7 @@ function api_demo_async_google_fonts_styles($html, $handle, $href, $media) {
 }
 add_filter('style_loader_tag', 'api_demo_async_google_fonts_styles', 10, 4);
 
-/**
- * Defer scripts no crÃ­ticos en la pÃ¡gina del shortcode para mejorar TBT/FCP
- */
+
 function api_demo_defer_non_critical_scripts($tag, $handle, $src) {
   if (is_admin() || !api_demo_current_view_has_shortcode()) {
     return $tag;
@@ -406,9 +372,7 @@ function api_demo_defer_non_critical_scripts($tag, $handle, $src) {
 }
 add_filter('script_loader_tag', 'api_demo_defer_non_critical_scripts', 10, 3);
 
-/**
- * Shortcode [api_products]
- */
+
 function api_demo_products_shortcode($atts) {
   $atts = shortcode_atts([
     'limit' => 8,
@@ -470,10 +434,7 @@ function api_demo_products_shortcode($atts) {
 }
 add_shortcode('api_products', 'api_demo_products_shortcode');
 
-/**
- * Sync manual por query param
- * Ejemplo: /?sync_api=1 (usuario admin logueado)
- */
+
 add_action('init', function() {
   if (!isset($_GET['sync_api'])) {
     return;
